@@ -1,6 +1,7 @@
-use uuid::Uuid;
+use serde::{Deserialize, Serialize};
 
+#[derive(Serialize, Deserialize)]
 struct Device {
-    device_id: Uuid,
-    effect: i32,
+    id: i64,
+    effect: f64,
 }

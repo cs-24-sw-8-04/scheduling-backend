@@ -6,5 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-chrono = "0.4.35"
+chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1.8.0", features = ["v4"] }
+axum = { version = "0.7", features = ["macros"] }
+tokio = { version = "1.36", features = ["full"] }
+tower = "0.4"
+sqlx = { version = "0.7", features = ["sqlite", "macros", "migrate", "runtime-tokio", "chrono"] }
+serde = "1.0"
+serde_with = "3.7"
+dotenv = "0.15"

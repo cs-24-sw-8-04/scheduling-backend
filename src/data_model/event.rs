@@ -1,9 +1,11 @@
-use uuid::Uuid;
-use::chrono::{DateTime, Local};
+use serde::{Deserialize, Serialize};
 
+use super::time::DateTimeUtc;
+
+#[derive(Serialize, Deserialize)]
 struct Event {
-    device_id: Uuid,
-    event_id: Uuid,
-    version_nr: i32,
-    start_time: DateTime<Local>,
+    id: i64,
+    device_id: i64,
+    version_nr: i64,
+    start_time: DateTimeUtc,
 }
