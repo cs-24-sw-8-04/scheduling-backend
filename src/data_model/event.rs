@@ -1,5 +1,5 @@
+use chrono::{DateTime, Local};
 use uuid::Uuid;
-use::chrono::{DateTime, Local};
 
 struct Event {
     device_id: Uuid,

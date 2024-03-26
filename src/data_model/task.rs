@@ -1,17 +1,15 @@
-use::uuid::Uuid;
-use::chrono::{DateTime, Local};
-struct TimeInteval {
-    start_time: DateTime<Local>,
-    end_time: DateTime<Local>,
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize)]
+pub struct Timespan {
+    pub start: i64,
+    pub end: i64,
 }
 
-struct Task {
-    device_id: Uuid,
-    effect: i16,
-    duration: i32,
-    interval: TimeInteval,
-}
-
-pub fn hello() {
-    println!("Hello World");
+#[derive(Serialize, Deserialize)]
+pub struct Task {
+    pub id: i64,
+    pub timespan: Timespan,
+    pub duration: i64,
+    pub effect: f64,
 }

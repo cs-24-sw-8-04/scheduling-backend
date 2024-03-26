@@ -8,3 +8,9 @@ edition = "2021"
 [dependencies]
 chrono = "0.4.35"
 uuid = { version = "1.8.0", features = ["v4"] }
+axum = { version = "0.7", features = ["macros"] }
+tokio = { version = "1.36", features = ["full"] }
+tower = "0.4"
+sqlx = { version = "0.7", features = ["sqlite", "macros", "migrate", "runtime-tokio"] }
+serde = "1.0"
+dotenv = "0.15"
