@@ -13,8 +13,8 @@ use dotenv::dotenv;
 
 mod data_model;
 
-use data_model::task::Task;
-use data_model::time::Timespan;
+use data_model::Task;
+use data_model::Timespan;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
