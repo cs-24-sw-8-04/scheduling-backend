@@ -13,7 +13,7 @@ use dotenv::dotenv;
 
 mod data_model;
 
-use data_model::task::{Task, Timespan};
+use data_model::{task::Task, time::TimeSlot};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -45,7 +45,7 @@ async fn get_tasks(
 ) -> Result<Json<Vec<Task>>, (StatusCode, String)> {
     let tasks = sqlx::query!(
         r#"
-        SELECT id, timespan_start, timespan_end, duration, effect
+    SELECT id, timeslot_start, timeslot_end, duration, effect
     FROM Tasks
     "#
     )
@@ -57,11 +57,8 @@ async fn get_tasks(
         .iter()
         .map(|t| Task {
             id: t.id,
-            timespan: Timespan {
-                start: t.timespan_start,
-                end: t.timespan_end,
-            },
-            duration: t.duration,
+            time_slot: TimeSlot::new(t.timeslot_start.into(), t.timeslot_end.into()),
+            duration: t.duration.into(),
             effect: t.effect,
         })
         .collect();
@@ -76,12 +73,12 @@ async fn create_task(
 ) -> Result<Json<Task>, (StatusCode, String)> {
     let id = sqlx::query_scalar!(
         r#"
-    INSERT INTO Tasks (timespan_start, timespan_end, duration, effect)
+    INSERT INTO Tasks (timeslot_start, timeslot_end, duration, effect)
     VALUES (?, ?, ?, ?)
     RETURNING id
     "#,
-        task.timespan.start,
-        task.timespan.end,
+        task.time_slot.start,
+        task.time_slot.end,
         task.duration,
         task.effect
     )
