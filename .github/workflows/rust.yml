@@ -26,6 +26,8 @@ jobs:
         rustup component add clippy
         cargo install sqlx-cli --no-default-features --features sqlite
     - uses: Swatinem/rust-cache@v2
+    - name: Install sqlx-cli
+      run: cargo install sqlx-cli --no-default-features --features sqlite
     - name: Setup local db
       run: |
         cargo sqlx db create
