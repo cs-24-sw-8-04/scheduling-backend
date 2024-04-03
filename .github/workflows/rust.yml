@@ -21,15 +21,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Rustup
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        override: true
-        components: clippy
+      run: |
+        rustup update
+        rustup component add clippy
+        cargo install sqlx-cli --no-default-features --features sqlite
     - uses: Swatinem/rust-cache@v2
-    - name: Install sqlx-cli
-      run: cargo install sqlx-cli --no-default-features --features sqlite
     - name: Setup local db
       run: |
         cargo sqlx db create
