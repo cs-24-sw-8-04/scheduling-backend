@@ -63,3 +63,25 @@ pub async fn create_task(
 
     Ok(Json(task))
 }
+
+#[debug_handler]
+pub async fn delete_task(
+    State(pool): State<SqlitePool>,
+    Authentication(account_id): Authentication,
+    Json(task): Json<Task>
+) -> Result<(), (StatusCode, String)> {
+    sqlx::query_scalar!(
+        r#"
+        DELETE FROM Tasks
+        WHERE id == ? AND account_id = ?
+        "#,
+        task.id,
+        account_id
+    )
+    .execute(&pool)
+    .await
+    .map_err(internal_error)?;
+
+    Ok(())
+
+}
