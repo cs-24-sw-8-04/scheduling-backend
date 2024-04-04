@@ -2,7 +2,7 @@ use crate::data_model::{
     event::Event, 
     graph::DescreteGraph, 
     task::Task, 
-    time::DateTimeUtc
+    time::Timespan,
 };
 
 pub struct Scheduler {
@@ -21,29 +21,29 @@ impl Scheduler {
     }
 
     pub fn schedule_naive(&self) -> Result<(), &str> {
-        if self.tasks.is_empty() {
-            return Err("No tasks to schedule");
-        }
+        if self.tasks.is_empty() { return Err("No tasks to schedule") }
 
-        let mut i = 0; 
-        let mut greatest = 0;
-        let graph_values = self.graph.get_values();
+        let greatest = self.graph
+            .get_values()
+            .iter()
+            .max_by(|x, y| x.0.cmp(&y.0))
+            .unwrap();
 
-        for value in graph_values {
-            if value.0 > greatest {
-                greatest = i;
-            }
+        let mut i = 0;
+        for task in &self.tasks {
+            self.add_event(i, task, greatest);
             i += 1;
         }
-
-        self.tasks.iter().for_each(|task| {
-            Self::add_event(task.device.id, task.timespan.start)
-        });
 
         Ok(())
     }
 
-    fn add_event(device_id: i64, start_time: DateTimeUtc) {
-
+    fn add_event(&self, id: i64, task: &Task, timeslot: &(i32, Timespan)) {
+        self.events.push(Event { 
+            id, 
+            device_id: task.device_id, 
+            version_nr: id, 
+            start_time: timeslot.1.start 
+        })
     }
 }
