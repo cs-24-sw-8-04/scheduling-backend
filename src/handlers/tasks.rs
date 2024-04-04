@@ -42,7 +42,7 @@ pub async fn get_tasks(
 #[debug_handler]
 pub async fn create_task(
     State(pool): State<SqlitePool>,
-    //Authentication(account_id): Authentication,       May need acount id to something....
+    Authentication(account_id): Authentication,
     Json(create_task_request): Json<CreateTaskRequest>,
 ) -> Result<Json<Task>, (StatusCode, String)> {
     let id = sqlx::query_scalar!(
@@ -61,7 +61,7 @@ pub async fn create_task(
     .map_err(internal_error)?;
 
     let task = Task {
-        id: id,
+        id,
         timespan: Timespan {
             start: create_task_request.timespan.start,
             end: create_task_request.timespan.end,
@@ -85,7 +85,7 @@ pub async fn delete_task(
         WHERE id == ? AND EXISTS (
             SELECT * 
             FROM Tasks 
-            JOIN Devices ON Tasks.device_id == Devices.device_id 
+            JOIN Devices ON Tasks.device_id == Devices.id 
             AND Devices.account_id == ?
         )
         "#,
