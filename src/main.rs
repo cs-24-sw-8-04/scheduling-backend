@@ -54,7 +54,12 @@ mod tests {
     use crate::data_model::{task::Task, time::Timespan};
 
     use self::{
-        data_model::device::Device, extractors::auth::AuthToken, protocol::{accounts::{RegisterOrLoginRequest, RegisterOrLoginResponse}, devices::CreateDeviceRequest}
+        data_model::device::Device,
+        extractors::auth::AuthToken,
+        protocol::{
+            accounts::{RegisterOrLoginRequest, RegisterOrLoginResponse},
+            devices::CreateDeviceRequest,
+        },
     };
 
     use super::*;
@@ -121,10 +126,7 @@ mod tests {
             .header("Content-Type", "application/json")
             .header("X-Auth-Token", auth_token.clone())
             .body(Body::from(
-                serde_json::to_vec(&CreateDeviceRequest {
-                    effect: 1000.0
-                })
-                .unwrap(),
+                serde_json::to_vec(&CreateDeviceRequest { effect: 1000.0 }).unwrap(),
             ))
             .unwrap();
 
@@ -222,7 +224,7 @@ mod tests {
                         Utc::now().checked_add_days(Days::new(1)).unwrap(),
                     ),
                     duration: 3600.into(),
-                    device_id: device.id
+                    device_id: device.id,
                 })
                 .unwrap(),
             ))
@@ -270,7 +272,7 @@ mod tests {
                         Utc::now().checked_add_days(Days::new(1)).unwrap(),
                     ),
                     duration: 3600.into(),
-                    device_id: device.id
+                    device_id: device.id,
                 })
                 .unwrap(),
             ))

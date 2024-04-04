@@ -3,7 +3,7 @@ use sqlx::SqlitePool;
 
 use crate::{
     data_model::device::Device, extractors::auth::Authentication, handlers::util::internal_error,
-    protocol::devices::CreateDeviceRequest
+    protocol::devices::CreateDeviceRequest,
 };
 
 #[debug_handler]
@@ -29,7 +29,7 @@ pub async fn get_all_smart_devices(
             .map(|d| Device {
                 id: d.id,
                 effect: d.effect,
-                account_id: d.account_id
+                account_id: d.account_id,
             })
             .collect(),
     ))
@@ -57,7 +57,7 @@ pub async fn create_smart_device(
     let device = Device {
         id,
         effect: create_device_request.effect,
-        account_id
+        account_id,
     };
 
     Ok(Json(device))
@@ -67,7 +67,7 @@ pub async fn create_smart_device(
 pub async fn delete_smart_device(
     State(pool): State<SqlitePool>,
     Authentication(account_id): Authentication,
-    Json(device): Json<Device>
+    Json(device): Json<Device>,
 ) -> Result<(), (StatusCode, String)> {
     sqlx::query!(
         r#"
