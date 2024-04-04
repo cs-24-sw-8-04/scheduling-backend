@@ -13,7 +13,7 @@ use dotenv::dotenv;
 use sqlx::sqlite::SqlitePoolOptions;
 use tokio::net::TcpListener;
 
-use handlers::{accounts::*, tasks::*, devices::*};
+use handlers::{accounts::*, devices::*, tasks::*};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {

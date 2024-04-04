@@ -4,7 +4,8 @@ use sqlx::SqlitePool;
 use crate::{
     data_model::{task::Task, time::Timespan},
     extractors::auth::Authentication,
-    handlers::util::internal_error, protocol::tasks::CreateTaskRequest,
+    handlers::util::internal_error,
+    protocol::tasks::CreateTaskRequest,
 };
 
 #[debug_handler]
@@ -31,7 +32,7 @@ pub async fn get_tasks(
             id: t.id,
             timespan: Timespan::new_from_naive(t.timespan_start, t.timespan_end),
             duration: t.duration.into(),
-            device_id: t.device_id
+            device_id: t.device_id,
         })
         .collect();
 
@@ -59,14 +60,14 @@ pub async fn create_task(
     .await
     .map_err(internal_error)?;
 
-    let task = Task { 
+    let task = Task {
         id: id,
         timespan: Timespan {
             start: create_task_request.timespan.start,
-            end: create_task_request.timespan.end
+            end: create_task_request.timespan.end,
         },
         duration: create_task_request.duration,
-        device_id: create_task_request.device_id
+        device_id: create_task_request.device_id,
     };
 
     Ok(Json(task))
@@ -76,7 +77,7 @@ pub async fn create_task(
 pub async fn delete_task(
     State(pool): State<SqlitePool>,
     Authentication(account_id): Authentication,
-    Json(task): Json<Task>
+    Json(task): Json<Task>,
 ) -> Result<(), (StatusCode, String)> {
     sqlx::query!(
         r#"
@@ -96,5 +97,4 @@ pub async fn delete_task(
     .map_err(internal_error)?;
 
     Ok(())
-
 }
