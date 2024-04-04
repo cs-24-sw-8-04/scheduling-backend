@@ -41,8 +41,8 @@ pub async fn get_tasks(
 #[debug_handler]
 pub async fn create_task(
     State(pool): State<SqlitePool>,
-    Authentication(account_id): Authentication,
-    Json(mut createTaskRequest): Json<CreateTaskRequest>,
+    //Authentication(account_id): Authentication,       May need acount id to something....
+    Json(create_task_request): Json<CreateTaskRequest>,
 ) -> Result<Json<Task>, (StatusCode, String)> {
     let id = sqlx::query_scalar!(
         r#"
@@ -50,10 +50,10 @@ pub async fn create_task(
         VALUES (?, ?, ?, ?)
         RETURNING id
         "#,
-        createTaskRequest.timespan.start,
-        createTaskRequest.timespan.end,
-        createTaskRequest.duration,
-        createTaskRequest.device_id
+        create_task_request.timespan.start,
+        create_task_request.timespan.end,
+        create_task_request.duration,
+        create_task_request.device_id
     )
     .fetch_one(&pool)
     .await
@@ -62,11 +62,11 @@ pub async fn create_task(
     let task = Task { 
         id: id,
         timespan: Timespan {
-            start: createTaskRequest.timespan.start,
-            end: createTaskRequest.timespan.end
+            start: create_task_request.timespan.start,
+            end: create_task_request.timespan.end
         },
-        duration: createTaskRequest.duration,
-        device_id: createTaskRequest.device_id
+        duration: create_task_request.duration,
+        device_id: create_task_request.device_id
     };
 
     Ok(Json(task))
@@ -81,7 +81,12 @@ pub async fn delete_task(
     sqlx::query!(
         r#"
         DELETE FROM Tasks
-        WHERE id == ? AND account_id = ?
+        WHERE id == ? AND EXISTS (
+            SELECT * 
+            FROM Tasks 
+            JOIN Devices ON Tasks.device_id == Devices.device_id 
+            AND Devices.account_id == ?
+        )
         "#,
         task.id,
         account_id
