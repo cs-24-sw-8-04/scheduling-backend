@@ -1,10 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use super::time::{Milliseconds, Timespan};
+use crate::data_model::time::{Milliseconds, Timespan};
 
-#[derive(Serialize, Deserialize)]
-pub struct Task {
-    pub id: i64,
+#[derive(Deserialize, Serialize)]
+pub struct CreateTaskRequest {
     pub timespan: Timespan,
     pub duration: Milliseconds,
     pub device_id: i64

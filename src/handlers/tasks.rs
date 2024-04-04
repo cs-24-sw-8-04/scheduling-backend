@@ -4,7 +4,7 @@ use sqlx::SqlitePool;
 use crate::{
     data_model::{task::Task, time::Timespan},
     extractors::auth::Authentication,
-    handlers::util::internal_error,
+    handlers::util::internal_error, protocol::tasks::CreateTaskRequest,
 };
 
 #[debug_handler]
@@ -14,9 +14,10 @@ pub async fn get_tasks(
 ) -> Result<Json<Vec<Task>>, (StatusCode, String)> {
     let tasks = sqlx::query!(
         r#"
-        SELECT id, timespan_start, timespan_end, duration, effect
+        SELECT Tasks.id, Tasks.timespan_start, Tasks.timespan_end, Tasks.duration, Tasks.device_id
         FROM Tasks
-        WHERE account_id = ?
+        JOIN Devices ON Tasks.device_id == Devices.id
+        WHERE Devices.account_id = ?
         "#,
         account_id
     )
@@ -30,7 +31,7 @@ pub async fn get_tasks(
             id: t.id,
             timespan: Timespan::new_from_naive(t.timespan_start, t.timespan_end),
             duration: t.duration.into(),
-            effect: t.effect,
+            device_id: t.device_id
         })
         .collect();
 
@@ -41,25 +42,32 @@ pub async fn get_tasks(
 pub async fn create_task(
     State(pool): State<SqlitePool>,
     Authentication(account_id): Authentication,
-    Json(mut task): Json<Task>,
+    Json(mut createTaskRequest): Json<CreateTaskRequest>,
 ) -> Result<Json<Task>, (StatusCode, String)> {
     let id = sqlx::query_scalar!(
         r#"
-        INSERT INTO Tasks (timespan_start, timespan_end, duration, effect, account_id)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO Tasks (timespan_start, timespan_end, duration, device_id)
+        VALUES (?, ?, ?, ?)
         RETURNING id
         "#,
-        task.timespan.start,
-        task.timespan.end,
-        task.duration,
-        task.effect,
-        account_id
+        createTaskRequest.timespan.start,
+        createTaskRequest.timespan.end,
+        createTaskRequest.duration,
+        createTaskRequest.device_id
     )
     .fetch_one(&pool)
     .await
     .map_err(internal_error)?;
 
-    task.id = id;
+    let task = Task { 
+        id: id,
+        timespan: Timespan {
+            start: createTaskRequest.timespan.start,
+            end: createTaskRequest.timespan.end
+        },
+        duration: createTaskRequest.duration,
+        device_id: createTaskRequest.device_id
+    };
 
     Ok(Json(task))
 }
@@ -70,7 +78,7 @@ pub async fn delete_task(
     Authentication(account_id): Authentication,
     Json(task): Json<Task>
 ) -> Result<(), (StatusCode, String)> {
-    sqlx::query_scalar!(
+    sqlx::query!(
         r#"
         DELETE FROM Tasks
         WHERE id == ? AND account_id = ?

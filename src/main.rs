@@ -13,8 +13,7 @@ use dotenv::dotenv;
 use sqlx::sqlite::SqlitePoolOptions;
 use tokio::net::TcpListener;
 
-use handlers::accounts::*;
-use handlers::tasks::*;
+use handlers::{accounts::*, tasks::*, devices::*};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -32,6 +31,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/", get(get_tasks))
         .route("/create", post(create_task))
         .route("/task/delete", post(delete_task))
+        .route("/device/all", get(get_all_smart_devices))
         .route("/accounts/register", post(register_account))
         .route("/accounts/login", post(login_to_account))
         .with_state(pool);
