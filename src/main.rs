@@ -13,8 +13,7 @@ use dotenv::dotenv;
 use sqlx::{sqlite::SqlitePoolOptions, SqlitePool};
 use tokio::net::TcpListener;
 
-use handlers::accounts::*;
-use handlers::tasks::*;
+use handlers::{accounts::*, devices::*, tasks::*};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -41,6 +40,10 @@ fn app(pool: SqlitePool) -> Router {
     Router::new()
         .route("/tasks/all", get(get_tasks))
         .route("/tasks/create", post(create_task))
+        .route("/task/delete", post(delete_task))
+        .route("/device/all", get(get_all_smart_devices))
+        .route("/device/create", post(create_smart_device))
+        .route("/device/delete", post(delete_smart_device))
         .route("/accounts/register", post(register_account))
         .route("/accounts/login", post(login_to_account))
         .with_state(pool)
@@ -51,8 +54,12 @@ mod tests {
     use crate::data_model::{task::Task, time::Timespan};
 
     use self::{
+        data_model::device::Device,
         extractors::auth::AuthToken,
-        protocol::accounts::{RegisterOrLoginRequest, RegisterOrLoginResponse},
+        protocol::{
+            accounts::{RegisterOrLoginRequest, RegisterOrLoginResponse},
+            devices::CreateDeviceRequest,
+        },
     };
 
     use super::*;
@@ -112,6 +119,38 @@ mod tests {
         response.auth_token
     }
 
+    async fn generate_device(app: &mut RouterIntoService<Body>, auth_token: String) -> Device {
+        let request = Request::builder()
+            .method(Method::POST)
+            .uri("/device/create")
+            .header("Content-Type", "application/json")
+            .header("X-Auth-Token", auth_token.clone())
+            .body(Body::from(
+                serde_json::to_vec(&CreateDeviceRequest { effect: 1000.0 }).unwrap(),
+            ))
+            .unwrap();
+
+        let response = ServiceExt::<Request<Body>>::ready(app)
+            .await
+            .unwrap()
+            .call(request)
+            .await
+            .unwrap();
+
+        println!("{:?}", response);
+
+        if response.status() != StatusCode::OK {
+            let body = response.into_body().collect().await.unwrap().to_bytes();
+            let body = String::from_utf8_lossy(&body);
+            panic!("{}", body);
+        }
+
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let device: Device = serde_json::from_slice(&body).unwrap();
+
+        device
+    }
+
     fn auth_token_to_uuid(auth_token: AuthToken) -> String {
         let auth_token_json = serde_json::to_string(&auth_token).unwrap();
         let uuid: Uuid = serde_json::from_str(&auth_token_json).unwrap();
@@ -169,12 +208,14 @@ mod tests {
 
         // Registers an account
         let auth_token = get_account(&mut app).await;
+        let auth_token = auth_token_to_uuid(auth_token);
+        let device = generate_device(&mut app, auth_token.clone()).await;
 
         let request = Request::builder()
             .method(Method::POST)
             .uri("/tasks/create")
             .header("Content-Type", "application/json")
-            .header("X-Auth-Token", auth_token_to_uuid(auth_token))
+            .header("X-Auth-Token", auth_token.clone())
             .body(Body::from(
                 serde_json::to_vec(&Task {
                     id: -1,
@@ -183,7 +224,7 @@ mod tests {
                         Utc::now().checked_add_days(Days::new(1)).unwrap(),
                     ),
                     duration: 3600.into(),
-                    effect: 1000.0,
+                    device_id: device.id,
                 })
                 .unwrap(),
             ))
@@ -207,7 +248,6 @@ mod tests {
 
         assert_ne!(response.id, -1);
         assert_eq!(response.duration, 3600.into());
-        assert_eq!(response.effect, 1000.0);
     }
 
     #[tokio::test]
@@ -217,6 +257,7 @@ mod tests {
         // Registers an account
         let auth_token = get_account(&mut app).await;
         let auth_token = auth_token_to_uuid(auth_token);
+        let device = generate_device(&mut app, auth_token.clone()).await;
 
         let request = Request::builder()
             .method(Method::POST)
@@ -231,7 +272,7 @@ mod tests {
                         Utc::now().checked_add_days(Days::new(1)).unwrap(),
                     ),
                     duration: 3600.into(),
-                    effect: 1000.0,
+                    device_id: device.id,
                 })
                 .unwrap(),
             ))

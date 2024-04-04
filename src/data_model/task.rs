@@ -7,5 +7,5 @@ pub struct Task {
     pub id: i64,
     pub timespan: Timespan,
     pub duration: Milliseconds,
-    pub effect: f64,
+    pub device_id: i64,
 }
