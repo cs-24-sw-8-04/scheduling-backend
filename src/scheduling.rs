@@ -12,13 +12,8 @@ pub struct Scheduler {
 }
 
 impl Scheduler {
-    pub fn add_task(&mut self, task: Task) {
-        self.tasks.push(task);
-    }
-
-    pub fn get_events(&self) -> &Vec<Event> {
-        &self.events
-    }
+    pub fn add_task(&mut self, task: Task)  {self.tasks.push(task);}
+    pub fn get_events(&self) -> &Vec<Event> {&self.events}
 
     pub fn schedule_naive(&self) -> Result<(), &str> {
         if self.tasks.is_empty() { return Err("No tasks to schedule") }
@@ -28,8 +23,8 @@ impl Scheduler {
             .iter()
             .max_by(|x, y| x.0.cmp(&y.0))
             .unwrap();
-
         let mut i = 0;
+
         for task in &self.tasks {
             self.add_event(i, task, greatest);
             i += 1;
