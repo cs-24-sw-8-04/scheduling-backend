@@ -1,5 +1,5 @@
-use chrono::Duration;
 use super::time::Timespan;
+use chrono::Duration;
 pub struct DescreteGraph {
     values: Vec<(i32, Timespan)>,
     time_delta: Duration,

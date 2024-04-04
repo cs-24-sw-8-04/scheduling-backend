@@ -1,9 +1,4 @@
-use crate::data_model::{
-    event::Event, 
-    graph::DescreteGraph, 
-    task::Task, 
-    time::Timespan,
-};
+use crate::data_model::{event::Event, graph::DescreteGraph, task::Task, time::Timespan};
 
 pub struct Scheduler {
     tasks: Vec<Task>,
@@ -12,13 +7,20 @@ pub struct Scheduler {
 }
 
 impl Scheduler {
-    pub fn add_task(&mut self, task: Task)  {self.tasks.push(task);}
-    pub fn get_events(&self) -> &Vec<Event> {&self.events}
+    pub fn add_task(&mut self, task: Task) {
+        self.tasks.push(task);
+    }
+    pub fn get_events(&self) -> &Vec<Event> {
+        &self.events
+    }
 
     pub fn schedule_naive(&self) -> Result<(), &str> {
-        if self.tasks.is_empty() { return Err("No tasks to schedule") }
+        if self.tasks.is_empty() {
+            return Err("No tasks to schedule");
+        }
 
-        let greatest = self.graph
+        let greatest = self
+            .graph
             .get_values()
             .iter()
             .max_by(|x, y| x.0.cmp(&y.0))
@@ -34,11 +36,11 @@ impl Scheduler {
     }
 
     fn add_event(&self, id: i64, task: &Task, timeslot: &(i32, Timespan)) {
-        self.events.push(Event { 
-            id, 
-            device_id: task.device_id, 
-            version_nr: id, 
-            start_time: timeslot.1.start 
+        self.events.push(Event {
+            id,
+            device_id: task.device_id,
+            version_nr: id,
+            start_time: timeslot.1.start,
         })
     }
 }
